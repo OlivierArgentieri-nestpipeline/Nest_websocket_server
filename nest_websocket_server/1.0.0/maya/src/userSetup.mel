@@ -1,0 +1,7 @@
+python("print('Start userSetup.mel in Maya')");
+$here = `whatIs userSetup`;
+// print($here);
+python("here = r'" + $here + "'.replace('Script found in: ', '')");
+python("import sys,os; sys.path.insert(0, os.path.dirname(here))");
+python("import maya_handler");
+python("print('Done import init in Maya')");
