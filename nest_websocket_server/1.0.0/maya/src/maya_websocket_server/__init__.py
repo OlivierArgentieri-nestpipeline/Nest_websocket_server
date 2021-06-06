@@ -2,6 +2,7 @@ print("=========================")
 print("Websocket server running")
 print("=========================")
 
+import os
 import maya.cmds as cmds
 import maya.utils as maya_utils
 import json
@@ -9,6 +10,7 @@ import sys
 from threading import Thread
 import logging
 from simple_websocket_server import WebSocketServer, WebSocket
+from regedit import Regedit
 
 
 class MayaWebSocketServer(WebSocket):
@@ -56,8 +58,25 @@ class MayaWebSocketServer(WebSocket):
         data ="name = cmds.file(q=True, sn=True).split('/')[-1]\nname = name if len(name)>0 else 'unsaved'\nprint(json.dumps({'fileName': name, 'execName': '" + exec_name + "'}, sort_keys=True))"
         maya_utils.executeInMainThreadWithResult(self.function_to_process, data)
 
+
+class MyWebSocketClass(WebSocketServer):
+    WebSocketServer.port = 0
+    def __init__(self, host, port, websocketclass):
+        super(MyWebSocketClass, self).__init__(host, port, websocketclass)
+        WebSocketServer.port = self.serversocket.getsockname()[1]
+        Regedit.set_reg(os.getenv('REGISTRY_PORT_PATH'), str(WebSocketServer.port), str(WebSocketServer.port))
+
+# register on exit callback
+def exit_handler():
+    Regedit.rem_reg_value(os.getenv('REGISTRY_PORT_PATH'), str(WebSocketServer.port))
+    
+cmds.scriptJob(
+    event=["quitApplication", exit_handler],
+    protected=True
+)
+
 def start_server():
-    server = WebSocketServer("0.0.0.0", 0, MayaWebSocketServer)
+    server = MyWebSocketClass("0.0.0.0", 0, MayaWebSocketServer)
     server.serve_forever()
 
 def stop_server():
