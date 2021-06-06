@@ -60,17 +60,15 @@ class HoudiniWebSocketServer(WebSocket):
         # self.function_to_process(data)
 
 class MyWebSocketClass(WebSocketServer):
-    my_port = 0
+    WebSocketServer.port = 0
     def __init__(self, host, port, websocketclass):
         super(MyWebSocketClass, self).__init__(host, port, websocketclass)
-        my_port = self.serversocket.getsockname()[1]
-        print(os.getenv('REGISTRY_PORT_PATH'))
-        print(str(my_port))
-        Regedit.set_reg(os.getenv('REGISTRY_PORT_PATH'), str(my_port), str(my_port))
+        WebSocketServer.port = self.serversocket.getsockname()[1]
+        Regedit.set_reg(os.getenv('REGISTRY_PORT_PATH'), str(WebSocketServer.port), str(WebSocketServer.port))
 
 
 def exit_handler():
-    print(Regedit.rem_reg_value(os.getenv('REGISTRY_PORT_PATH'), str(my_port)))
+    print(Regedit.rem_reg_value(os.getenv('REGISTRY_PORT_PATH'), str(WebSocketServer.port)))
     
 atexit.register(exit_handler)
 
